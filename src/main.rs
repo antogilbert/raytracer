@@ -6,7 +6,7 @@ use std::{
 
 use raytracer::{
     ray::Ray,
-    vec3::{Point, Vec3},
+    vec3::{Colour, Point, Vec3},
 };
 
 const WIDTH: i64 = 400;
@@ -41,6 +41,34 @@ const DEPTH: Vec3 = Vec3 {
     z: FOCAL_LENGTH,
 };
 
+const RED: Colour = Colour {
+    x: 1.,
+    y: 0.,
+    z: 0.,
+};
+
+fn hit_sphere(centre: &Point, radius: f64, ray: &Ray) -> bool {
+    // Equation for sphere intersection with the ray
+    //
+    // t^2 b*b + t 2b*(O-C) + (O-C)*(O-C) -r^2 = 0
+    //
+    // b: direction vector
+    // O: ray origin
+    // C: sphere centre
+    // r: sphere radius
+    // t: unknown. ray parameter. Ray = O + t*b
+
+    let oc = ray.origin() - *centre;
+    let d = ray.dir();
+
+    let a = d.dot(&d);
+    let b = 2. * d.dot(&oc);
+    let c = oc.dot(&oc) - radius * radius;
+    let delta = b * b - 4. * a * c;
+
+    delta > 0.
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let lower_left = ORIGIN - HORIZONTAL / 2. - VERTICAL / 2. - DEPTH;
 
@@ -59,10 +87,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let dir = lower_left + u * HORIZONTAL + v * VERTICAL - ORIGIN;
 
+            let p = Point::new(0., 0., -1.);
             let ray = Ray::new(&ORIGIN, &dir);
-            let colour = ray.colour();
+            if hit_sphere(&p, 0.5, &ray) {
+                w.write_all(RED.as_colour_string().as_bytes())?;
+            } else {
+                let colour = ray.colour();
 
-            w.write_all(colour.as_colour_string().as_bytes())?;
+                w.write_all(colour.as_colour_string().as_bytes())?;
+            }
         }
         l.write_all(format!("Lines remaining: {j}. Total lines: {HEIGHT}\n").as_bytes())?;
     }
