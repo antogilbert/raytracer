@@ -14,8 +14,11 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
-    pub fn new(x: f64, y: f64, z: f64) -> Self {
-        Self { x, y, z }
+    pub fn as_colour_string(&self) -> String {
+        let ir = (255.999 * self.x) as i64;
+        let ig = (255.999 * self.y) as i64;
+        let ib = (255.999 * self.z) as i64;
+        format!("{ir} {ig} {ib}\n")
     }
 
     pub fn cross(&self, rhs: &Vec3) -> Self {
@@ -38,30 +41,12 @@ impl Vec3 {
         self.x.powi(2) + self.y.powi(2) + self.z.powi(2)
     }
 
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
+        Self { x, y, z }
+    }
+
     pub fn unit_vector(&self) -> Self {
         *self / self.len()
-    }
-}
-
-impl Default for Vec3 {
-    fn default() -> Self {
-        Self {
-            x: 0.,
-            y: 0.,
-            z: 0.,
-        }
-    }
-}
-
-impl Neg for Vec3 {
-    type Output = Self;
-
-    fn neg(self) -> Self::Output {
-        Self {
-            x: -self.x,
-            y: -self.y,
-            z: -self.z,
-        }
     }
 }
 
@@ -82,6 +67,16 @@ impl AddAssign for Vec3 {
         self.x += rhs.x;
         self.y += rhs.y;
         self.z += rhs.z;
+    }
+}
+
+impl Default for Vec3 {
+    fn default() -> Self {
+        Self {
+            x: 0.,
+            y: 0.,
+            z: 0.,
+        }
     }
 }
 
@@ -155,6 +150,18 @@ impl MulAssign<f64> for Vec3 {
     }
 }
 
+impl Neg for Vec3 {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        }
+    }
+}
+
 impl Sub for Vec3 {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self::Output {
@@ -190,6 +197,13 @@ mod tests {
         assert!(l.x - 1. < 1e-10);
         assert!(l.y - 2. < 1e-10);
         assert!(l.z - 3. < 1e-10);
+    }
+
+    #[test]
+    fn as_colour_string() {
+        let r = Vec3::new(0., 1., 0.25);
+
+        assert_eq!(r.as_colour_string(), "0 255 63\n");
     }
 
     #[test]
@@ -294,6 +308,15 @@ mod tests {
         assert!(nv.x + pv.x < 1e-10);
         assert!(nv.y + pv.y < 1e-10);
         assert!(nv.z + pv.z < 1e-10);
+    }
+
+    #[test]
+    fn new() {
+        let pv = Vec3::new(1., 2., 3.);
+
+        assert!(1. - pv.x < 1e-10);
+        assert!(2. - pv.y < 1e-10);
+        assert!(3. - pv.z < 1e-10);
     }
 
     #[test]
