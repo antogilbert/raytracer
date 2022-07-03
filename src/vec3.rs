@@ -70,6 +70,14 @@ impl AddAssign for Vec3 {
     }
 }
 
+impl AddAssign<f64> for Vec3 {
+    fn add_assign(&mut self, rhs: f64) {
+        self.x += rhs;
+        self.y += rhs;
+        self.z += rhs;
+    }
+}
+
 impl Default for Vec3 {
     fn default() -> Self {
         Self {

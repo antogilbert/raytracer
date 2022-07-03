@@ -1,16 +1,4 @@
-use crate::vec3::{Colour, Point, Vec3};
-
-const WHITE: Colour = Colour {
-    x: 1.,
-    y: 1.,
-    z: 1.,
-};
-
-const BLUE: Colour = Colour {
-    x: 0.5,
-    y: 0.7,
-    z: 1.,
-};
+use crate::vec3::{Point, Vec3};
 
 pub struct Ray {
     dir: Vec3,
@@ -18,10 +6,8 @@ pub struct Ray {
 }
 
 impl Ray {
-    pub fn colour(&self) -> Colour {
-        let unit_dir = self.dir.unit_vector();
-        let t = 0.5 * (unit_dir.y + 1.);
-        (1. - t) * WHITE + t * BLUE
+    pub fn at(&self, t: f64) -> Point {
+        self.orig + t * self.dir
     }
 
     pub fn dir(&self) -> Vec3 {

@@ -47,7 +47,39 @@ const RED: Colour = Colour {
     z: 0.,
 };
 
-fn hit_sphere(centre: &Point, radius: f64, ray: &Ray) -> bool {
+const WHITE: Colour = Colour {
+    x: 1.,
+    y: 1.,
+    z: 1.,
+};
+
+const BLUE: Colour = Colour {
+    x: 0.5,
+    y: 0.7,
+    z: 1.,
+};
+
+const SPHERE_CENTRE: Point = Point {
+    x: 0.,
+    y: 0.,
+    z: -1.,
+};
+
+fn colour(ray: &Ray) -> Colour {
+    let t = hit_sphere(&SPHERE_CENTRE, 0.5, &ray);
+    if t > 0. {
+        let mut n = (ray.at(t) - SPHERE_CENTRE).unit_vector();
+        n += 1.;
+        n *= 0.5;
+        return n;
+    }
+
+    let unit_dir = ray.dir().unit_vector();
+    let t = 0.5 * (unit_dir.y + 1.);
+    (1. - t) * WHITE + t * BLUE
+}
+
+fn hit_sphere(centre: &Point, radius: f64, ray: &Ray) -> f64 {
     // Equation for sphere intersection with the ray
     //
     // t^2 b*b + t 2b*(O-C) + (O-C)*(O-C) -r^2 = 0
@@ -66,7 +98,11 @@ fn hit_sphere(centre: &Point, radius: f64, ray: &Ray) -> bool {
     let c = oc.dot(&oc) - radius * radius;
     let delta = b * b - 4. * a * c;
 
-    delta > 0.
+    if delta < 0. {
+        return -1.;
+    }
+
+    (-b - delta.sqrt()) / (2. * a)
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -87,15 +123,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let dir = lower_left + u * HORIZONTAL + v * VERTICAL - ORIGIN;
 
-            let p = Point::new(0., 0., -1.);
             let ray = Ray::new(&ORIGIN, &dir);
-            if hit_sphere(&p, 0.5, &ray) {
-                w.write_all(RED.as_colour_string().as_bytes())?;
-            } else {
-                let colour = ray.colour();
 
-                w.write_all(colour.as_colour_string().as_bytes())?;
-            }
+            let col = colour(&ray);
+
+            w.write_all(col.as_colour_string().as_bytes())?;
         }
         l.write_all(format!("Lines remaining: {j}. Total lines: {HEIGHT}\n").as_bytes())?;
     }
