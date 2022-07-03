@@ -59,7 +59,7 @@ const SPHERE_CENTRE: Point = Point {
     z: -1.,
 };
 
-fn colour(ray: &Ray) -> Colour {
+fn colour(ray: Ray) -> Colour {
     let t = hit_sphere(&SPHERE_CENTRE, 0.5, &ray);
     if t > 0. {
         let mut n = (ray.at(t) - SPHERE_CENTRE).unit_vector();
@@ -119,7 +119,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let ray = Ray::new(&ORIGIN, &dir);
 
-            let col = colour(&ray);
+            let col = colour(ray);
 
             w.write_all(col.as_colour_string().as_bytes())?;
         }

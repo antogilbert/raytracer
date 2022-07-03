@@ -16,8 +16,8 @@ impl Ray {
 
     pub fn new(orig: &Point, dir: &Vec3) -> Self {
         Self {
-            dir: dir.clone(),
-            orig: orig.clone(),
+            dir: *dir,
+            orig: *orig,
         }
     }
 
