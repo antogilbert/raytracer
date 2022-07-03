@@ -41,12 +41,6 @@ const DEPTH: Vec3 = Vec3 {
     z: FOCAL_LENGTH,
 };
 
-const RED: Colour = Colour {
-    x: 1.,
-    y: 0.,
-    z: 0.,
-};
-
 const WHITE: Colour = Colour {
     x: 1.,
     y: 1.,
@@ -93,16 +87,16 @@ fn hit_sphere(centre: &Point, radius: f64, ray: &Ray) -> f64 {
     let oc = ray.origin() - *centre;
     let d = ray.dir();
 
-    let a = d.dot(&d);
-    let b = 2. * d.dot(&oc);
+    let a = d.len_squared();
+    let half_b = d.dot(&oc);
     let c = oc.dot(&oc) - radius * radius;
-    let delta = b * b - 4. * a * c;
+    let delta = half_b * half_b - a * c;
 
     if delta < 0. {
         return -1.;
     }
 
-    (-b - delta.sqrt()) / (2. * a)
+    (-half_b - delta.sqrt()) / a
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
