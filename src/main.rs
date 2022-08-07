@@ -77,13 +77,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     for j in (0..HEIGHT).rev() {
         for i in 0..WIDTH {
             let mut px_colour = Colour::new(0., 0., 0.);
-            for _ in 0..SAMPLES_PER_PIXEL {
+            for s in 0..SAMPLES_PER_PIXEL {
                 let u = (i as f64 + rand::thread_rng().gen_range(0.0..1.)) / ((WIDTH - 1) as f64);
                 let v = (j as f64 + rand::thread_rng().gen_range(0.0..1.)) / ((HEIGHT - 1) as f64);
 
                 let ray = cam.get_ray(u, v);
 
                 px_colour += get_colour(ray, &world);
+                l.write_all(format!("Processing sample {s}.\n").as_bytes())?;
             }
             w.write_all(px_colour.as_colour_string().as_bytes())?;
         }
