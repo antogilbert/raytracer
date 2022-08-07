@@ -3,6 +3,18 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub},
 };
 
+use crate::constants::{MAX_CLAMP, MIN_CLAMP, SAMPLES_PER_PIXEL};
+
+pub fn clamp(x: f64) -> f64 {
+    if x < MIN_CLAMP {
+        return MIN_CLAMP;
+    }
+    if x > MAX_CLAMP {
+        return MAX_CLAMP;
+    }
+    x
+}
+
 pub type Colour = Vec3;
 pub type Point = Vec3;
 
@@ -15,9 +27,14 @@ pub struct Vec3 {
 
 impl Vec3 {
     pub fn as_colour_string(&self) -> String {
-        let ir = (255.999 * self.x) as i64;
-        let ig = (255.999 * self.y) as i64;
-        let ib = (255.999 * self.z) as i64;
+        let r = self.x / SAMPLES_PER_PIXEL as f64;
+        let g = self.y / SAMPLES_PER_PIXEL as f64;
+        let b = self.z / SAMPLES_PER_PIXEL as f64;
+
+        let ir = (256. * clamp(r)) as i64;
+        let ig = (256. * clamp(g)) as i64;
+        let ib = (256. * clamp(b)) as i64;
+
         format!("{ir} {ig} {ib}\n")
     }
 

@@ -4,62 +4,16 @@ use std::{
     io::{BufWriter, Write},
 };
 
+use rand::Rng;
 use raytracer::{
-    hittable::{HitRecord, Hittable, HittableList},
+    camera::Camera,
+    hittable::{Hittable, HittableList},
     ray::Ray,
     sphere::Sphere,
-    vec3::{Colour, Point, Vec3},
+    vec3::{Colour, Point},
 };
 
-const WIDTH: i64 = 400;
-const ASPECT_RATIO: f64 = 16. / 9.;
-const HEIGHT: i64 = (WIDTH as f64 / ASPECT_RATIO) as i64;
-
-const VIEWPORT_HEIGHT: f64 = 2.;
-const VIEWPORT_WIDTH: f64 = ASPECT_RATIO * VIEWPORT_HEIGHT;
-const FOCAL_LENGTH: f64 = 1.;
-
-const ORIGIN: Point = Point {
-    x: 0.,
-    y: 0.,
-    z: 0.,
-};
-
-const HORIZONTAL: Vec3 = Vec3 {
-    x: VIEWPORT_WIDTH,
-    y: 0.,
-    z: 0.,
-};
-
-const VERTICAL: Vec3 = Vec3 {
-    x: 0.,
-    y: VIEWPORT_HEIGHT,
-    z: 0.,
-};
-
-const DEPTH: Vec3 = Vec3 {
-    x: 0.,
-    y: 0.,
-    z: FOCAL_LENGTH,
-};
-
-const WHITE: Colour = Colour {
-    x: 1.,
-    y: 1.,
-    z: 1.,
-};
-
-const BLUE: Colour = Colour {
-    x: 0.5,
-    y: 0.7,
-    z: 1.,
-};
-
-const SPHERE_CENTRE: Point = Point {
-    x: 0.,
-    y: 0.,
-    z: -1.,
-};
+use raytracer::constants::*;
 
 fn get_colour(ray: Ray, world: &HittableList) -> Colour {
     if let Some(rec) = world.hit(&ray, 0., f64::INFINITY) {
@@ -110,7 +64,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     world.add(Sphere::new(Point::new(0., 0., -1.), 0.5));
     world.add(Sphere::new(Point::new(0., -100.5, -1.), 100.));
 
-    let lower_left = ORIGIN - HORIZONTAL / 2. - VERTICAL / 2. - DEPTH;
+    let cam = Camera::new();
 
     let file = File::create("img.ppm")?;
     let log = File::create("raytracer.log")?;
@@ -122,16 +76,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     for j in (0..HEIGHT).rev() {
         for i in 0..WIDTH {
-            let u = i as f64 / ((WIDTH - 1) as f64);
-            let v = j as f64 / ((HEIGHT - 1) as f64);
+            let mut px_colour = Colour::new(0., 0., 0.);
+            for _ in 0..SAMPLES_PER_PIXEL {
+                let u = (i as f64 + rand::thread_rng().gen_range(0.0..1.)) / ((WIDTH - 1) as f64);
+                let v = (j as f64 + rand::thread_rng().gen_range(0.0..1.)) / ((HEIGHT - 1) as f64);
 
-            let dir = lower_left + u * HORIZONTAL + v * VERTICAL - ORIGIN;
+                let ray = cam.get_ray(u, v);
 
-            let ray = Ray::new(&ORIGIN, &dir);
-
-            let col = get_colour(ray, &world);
-
-            w.write_all(col.as_colour_string().as_bytes())?;
+                px_colour += get_colour(ray, &world);
+            }
+            w.write_all(px_colour.as_colour_string().as_bytes())?;
         }
         l.write_all(format!("Lines remaining: {j}. Total lines: {HEIGHT}\n").as_bytes())?;
     }
