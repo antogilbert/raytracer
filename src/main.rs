@@ -5,7 +5,9 @@ use std::{
 };
 
 use raytracer::{
+    hittable::{HitRecord, Hittable, HittableList},
     ray::Ray,
+    sphere::Sphere,
     vec3::{Colour, Point, Vec3},
 };
 
@@ -59,7 +61,11 @@ const SPHERE_CENTRE: Point = Point {
     z: -1.,
 };
 
-fn get_colour(ray: Ray) -> Colour {
+fn get_colour(ray: Ray, world: &HittableList) -> Colour {
+    if let Some(rec) = world.hit(&ray, 0., f64::INFINITY) {
+        return 0.5 * (rec.n + WHITE);
+    }
+
     let t = hit_sphere(&SPHERE_CENTRE, 0.5, &ray);
     if t > 0. {
         let mut n = (ray.at(t) - SPHERE_CENTRE).unit_vector();
@@ -100,6 +106,10 @@ fn hit_sphere(centre: &Point, radius: f64, ray: &Ray) -> f64 {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let mut world = HittableList::new();
+    world.add(Sphere::new(Point::new(0., 0., -1.), 0.5));
+    world.add(Sphere::new(Point::new(0., -100.5, -1.), 100.));
+
     let lower_left = ORIGIN - HORIZONTAL / 2. - VERTICAL / 2. - DEPTH;
 
     let file = File::create("img.ppm")?;
@@ -119,7 +129,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let ray = Ray::new(&ORIGIN, &dir);
 
-            let col = get_colour(ray);
+            let col = get_colour(ray, &world);
 
             w.write_all(col.as_colour_string().as_bytes())?;
         }

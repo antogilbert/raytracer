@@ -4,7 +4,7 @@ use crate::{
     vec3::Point,
 };
 
-struct Sphere {
+pub struct Sphere {
     centre: Point,
     r: f64,
 }

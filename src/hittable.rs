@@ -35,11 +35,17 @@ pub trait Hittable {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
 }
 
-struct HittableList {
+#[derive(Default)]
+pub struct HittableList {
     pub objects: Vec<Box<dyn Hittable>>,
 }
 
 impl HittableList {
+    pub fn new() -> Self {
+        Self {
+            objects: Vec::new(),
+        }
+    }
     pub fn clear(&mut self) {
         self.objects.clear();
     }
