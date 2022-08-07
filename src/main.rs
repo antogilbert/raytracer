@@ -5,12 +5,13 @@ use std::{
 };
 
 use rand::Rng;
+use rayon::prelude::*;
 use raytracer::{
     camera::Camera,
     hittable::{Hittable, HittableList},
     ray::Ray,
     sphere::Sphere,
-    vec3::{Colour, Point},
+    vec3::{Colour, Point, Vec3},
 };
 
 use raytracer::constants::*;
@@ -74,22 +75,32 @@ fn main() -> Result<(), Box<dyn Error>> {
     w.write_all(format!("{WIDTH} {HEIGHT}\n").as_bytes())?;
     w.write_all(b"255\n")?;
 
-    for j in (0..HEIGHT).rev() {
-        for i in 0..WIDTH {
-            let mut px_colour = Colour::new(0., 0., 0.);
-            for s in 0..SAMPLES_PER_PIXEL {
-                let u = (i as f64 + rand::thread_rng().gen_range(0.0..1.)) / ((WIDTH - 1) as f64);
-                let v = (j as f64 + rand::thread_rng().gen_range(0.0..1.)) / ((HEIGHT - 1) as f64);
+    let image = (0..HEIGHT)
+        .into_par_iter()
+        .rev()
+        .flat_map(|j| {
+            (0..WIDTH)
+                .flat_map(|i| {
+                    let px_colour: Vec3 = (0..SAMPLES_PER_PIXEL)
+                        .map(|_| {
+                            let mut rng = rand::thread_rng();
+                            let u = (i as f64 + rng.gen_range(0.0..1.)) / ((WIDTH - 1) as f64);
+                            let v = (j as f64 + rng.gen_range(0.0..1.)) / ((HEIGHT - 1) as f64);
+                            let ray = cam.get_ray(u, v);
 
-                let ray = cam.get_ray(u, v);
+                            get_colour(ray, &world)
+                        })
+                        .sum();
+                    px_colour.as_colour_bytes()
+                })
+                .collect::<Vec<u8>>()
+        })
+        .collect::<Vec<u8>>();
 
-                px_colour += get_colour(ray, &world);
-                l.write_all(format!("Processing sample {s}.\n").as_bytes())?;
-            }
-            w.write_all(px_colour.as_colour_string().as_bytes())?;
-        }
-        l.write_all(format!("Lines remaining: {j}. Total lines: {HEIGHT}\n").as_bytes())?;
+    for nums in image.chunks(3) {
+        w.write_all(format!("{} {} {}\n", nums[0], nums[1], nums[2]).as_bytes())?;
     }
+
     l.write_all(b"Done.")?;
     Ok(())
 }

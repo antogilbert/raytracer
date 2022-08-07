@@ -1,5 +1,6 @@
 use std::{
     fmt::Display,
+    iter::Sum,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub},
 };
 
@@ -18,11 +19,17 @@ pub fn clamp(x: f64) -> f64 {
 pub type Colour = Vec3;
 pub type Point = Vec3;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
     pub z: f64,
+}
+
+impl Sum for Vec3 {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Vec3::default(), |v, elem| v + elem)
+    }
 }
 
 impl Vec3 {
@@ -35,7 +42,19 @@ impl Vec3 {
         let ig = (256. * clamp(g)) as i64;
         let ib = (256. * clamp(b)) as i64;
 
-        format!("{ir} {ig} {ib}\n")
+        format!("{ir} {ig} {ib}")
+    }
+
+    pub fn as_colour_bytes(&self) -> Vec<u8> {
+        let r = self.x / SAMPLES_PER_PIXEL as f64;
+        let g = self.y / SAMPLES_PER_PIXEL as f64;
+        let b = self.z / SAMPLES_PER_PIXEL as f64;
+
+        let ir = (256. * clamp(r)) as u8;
+        let ig = (256. * clamp(g)) as u8;
+        let ib = (256. * clamp(b)) as u8;
+
+        vec![ir, ig, ib]
     }
 
     pub fn cross(&self, rhs: &Vec3) -> Self {
@@ -362,5 +381,14 @@ mod tests {
         assert!(u.x - 1. / 3. < 1e-10);
         assert!(u.y - 2. / 3. < 1e-10);
         assert!(u.z - 2. / 3. < 1e-10);
+    }
+
+    #[test]
+    fn sum() {
+        let v = vec![Vec3::new(1., 2., 3.), Vec3::new(5., 7., 1.)];
+        let sum: Vec3 = v.into_iter().sum();
+        assert!(sum.x - 1. + 5. < 1e-10);
+        assert!(sum.y - 2. + 7. < 1e-10);
+        assert!(sum.z - 3. + 1. < 1e-10);
     }
 }
