@@ -22,7 +22,7 @@ fn get_colour(ray: Ray, world: &HittableList, recursion_depth: i32) -> Colour {
     }
 
     if let Some(rec) = world.hit(&ray, 0.001, f64::INFINITY) {
-        let tgt = rec.p + rec.n + Vec3::random_in_unit_sphere().unit_vector();
+        let tgt = rec.p + Vec3::random_in_hemisphere(&rec.n);
         return 0.5 * get_colour(Ray::new(&rec.p, &(tgt - rec.p)), world, recursion_depth - 1);
     }
 

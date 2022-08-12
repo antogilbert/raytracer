@@ -63,6 +63,16 @@ impl Vec3 {
         }
     }
 
+    pub fn random_in_hemisphere(n: &Vec3) -> Self {
+        let in_sphere = Vec3::random_in_unit_sphere();
+
+        if n.dot(&in_sphere) < 0. {
+            return -in_sphere;
+        }
+
+        in_sphere
+    }
+
     pub fn as_colour_string(&self) -> String {
         let r = self.x / SAMPLES_PER_PIXEL as f64;
         let g = self.y / SAMPLES_PER_PIXEL as f64;
