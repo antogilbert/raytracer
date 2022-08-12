@@ -16,9 +16,14 @@ use raytracer::{
 
 use raytracer::constants::*;
 
-fn get_colour(ray: Ray, world: &HittableList) -> Colour {
-    if let Some(rec) = world.hit(&ray, 0., f64::INFINITY) {
-        return 0.5 * (rec.n + WHITE);
+fn get_colour(ray: Ray, world: &HittableList, recursion_depth: i32) -> Colour {
+    if recursion_depth <= 0 {
+        return BLACK;
+    }
+
+    if let Some(rec) = world.hit(&ray, 0.001, f64::INFINITY) {
+        let tgt = rec.p + rec.n + Vec3::random_in_unit_sphere().unit_vector();
+        return 0.5 * get_colour(Ray::new(&rec.p, &(tgt - rec.p)), world, recursion_depth - 1);
     }
 
     let t = hit_sphere(&SPHERE_CENTRE, 0.5, &ray);
@@ -79,18 +84,21 @@ fn main() -> Result<(), Box<dyn Error>> {
         .into_par_iter()
         .rev()
         .flat_map(|j| {
+            // println!("  Writing height level {j}");
             (0..WIDTH)
                 .flat_map(|i| {
                     let px_colour: Vec3 = (0..SAMPLES_PER_PIXEL)
-                        .map(|_| {
+                        .map(|s| {
                             let mut rng = rand::thread_rng();
                             let u = (i as f64 + rng.gen_range(0.0..1.)) / ((WIDTH - 1) as f64);
                             let v = (j as f64 + rng.gen_range(0.0..1.)) / ((HEIGHT - 1) as f64);
                             let ray = cam.get_ray(u, v);
 
-                            get_colour(ray, &world)
+                            // println!("      Writing sample {s}");
+                            get_colour(ray, &world, MAX_RECURSION)
                         })
                         .sum();
+                    // println!("    Writing width level {i}");
                     px_colour.as_colour_bytes()
                 })
                 .collect::<Vec<u8>>()

@@ -4,6 +4,7 @@ pub const WIDTH: i32 = 400;
 pub const ASPECT_RATIO: f64 = 16. / 9.;
 pub const HEIGHT: i32 = (WIDTH as f64 / ASPECT_RATIO) as i32;
 pub const SAMPLES_PER_PIXEL: i64 = 100;
+pub const MAX_RECURSION: i32 = 50;
 
 pub const VIEWPORT_HEIGHT: f64 = 2.;
 pub const VIEWPORT_WIDTH: f64 = ASPECT_RATIO * VIEWPORT_HEIGHT;
@@ -33,6 +34,12 @@ pub const DEPTH: Vec3 = Vec3 {
     x: 0.,
     y: 0.,
     z: FOCAL_LENGTH,
+};
+
+pub const BLACK: Colour = Colour {
+    x: 0.,
+    y: 0.,
+    z: 0.,
 };
 
 pub const WHITE: Colour = Colour {

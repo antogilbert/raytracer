@@ -4,6 +4,8 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub},
 };
 
+use rand::Rng;
+
 use crate::constants::{MAX_CLAMP, MIN_CLAMP, SAMPLES_PER_PIXEL};
 
 pub fn clamp(x: f64) -> f64 {
@@ -33,10 +35,44 @@ impl Sum for Vec3 {
 }
 
 impl Vec3 {
+    pub fn random() -> Self {
+        let mut rng = rand::thread_rng();
+        Self {
+            x: rng.gen_range(0.0..1.),
+            y: rng.gen_range(0.0..1.),
+            z: rng.gen_range(0.0..1.),
+        }
+    }
+
+    pub fn random_bounded(min: f64, max: f64) -> Self {
+        let mut rng = rand::thread_rng();
+        Self {
+            x: rng.gen_range(min..max),
+            y: rng.gen_range(min..max),
+            z: rng.gen_range(min..max),
+        }
+    }
+
+    pub fn random_in_unit_sphere() -> Self {
+        loop {
+            let p = Vec3::random_bounded(-1., 1.);
+            if p.len_squared() >= 1. {
+                continue;
+            }
+            return p;
+        }
+    }
+
     pub fn as_colour_string(&self) -> String {
         let r = self.x / SAMPLES_PER_PIXEL as f64;
         let g = self.y / SAMPLES_PER_PIXEL as f64;
         let b = self.z / SAMPLES_PER_PIXEL as f64;
+
+        let scale = 1. / SAMPLES_PER_PIXEL as f64;
+
+        let r = (scale * r).sqrt();
+        let g = (scale * g).sqrt();
+        let b = (scale * b).sqrt();
 
         let ir = (256. * clamp(r)) as i64;
         let ig = (256. * clamp(g)) as i64;
