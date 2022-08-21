@@ -139,6 +139,13 @@ impl Vec3 {
         return *self - 2. * self.dot(normal) * *normal;
     }
 
+    pub fn refract(&self, normal: &Vec3, refraction_ratio: f64) -> Self {
+        let cos_theta = (-self.dot(normal)).min(1.);
+        let r_out_perp = refraction_ratio * (*self + cos_theta * *normal);
+        let r_out_par = (-(1. - r_out_perp.len_squared()).sqrt()) * *normal;
+        r_out_par + r_out_perp
+    }
+
     pub fn unit_vector(&self) -> Self {
         *self / self.len()
     }

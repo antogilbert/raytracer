@@ -1,4 +1,5 @@
 use crate::{
+    constants::WHITE,
     hittable::HitRecord,
     ray::Ray,
     vec3::{Colour, Vec3},
@@ -58,5 +59,31 @@ impl Material for Metal {
         }
 
         Some(scattered)
+    }
+}
+
+pub struct Dielectric {
+    pub refraction_idx: f64,
+}
+
+impl Dielectric {
+    pub fn new(ir: f64) -> Self {
+        Self { refraction_idx: ir }
+    }
+}
+
+impl Material for Dielectric {
+    fn scatter(&self, ray: &Ray, rec: &HitRecord, attenuation: &mut Colour) -> Option<Ray> {
+        *attenuation = WHITE;
+        let refraction_ratio = if rec.front_face {
+            1. / self.refraction_idx
+        } else {
+            self.refraction_idx
+        };
+
+        let unit_dir = ray.dir().unit_vector();
+        let refracted = unit_dir.refract(&rec.n, refraction_ratio);
+
+        Some(Ray::new(&rec.p, &refracted))
     }
 }
