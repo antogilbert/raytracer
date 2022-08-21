@@ -94,10 +94,10 @@ impl Material for Dielectric {
         let sin_theta = (1. - cos_theta.powi(2)).sqrt();
 
         let rand = rand::thread_rng().gen_range(0.0..1.);
-        let can_refract = (refraction_ratio * sin_theta <= 1.)
-            || (Dielectric::reflectance(cos_theta, refraction_ratio) < rand);
+        let cannot_refract = (refraction_ratio * sin_theta > 1.)
+            || (Dielectric::reflectance(cos_theta, refraction_ratio) > rand);
 
-        let direction = if can_refract {
+        let direction = if cannot_refract {
             unit_dir.refract(&rec.n, refraction_ratio)
         } else {
             unit_dir.reflect(&rec.n)

@@ -1,5 +1,6 @@
 use std::{
     error::Error,
+    f64::consts::PI,
     fs::File,
     io::{BufWriter, Write},
     sync::Arc,
@@ -24,7 +25,7 @@ fn get_colour(ray: Ray, world: &HittableList, recursion_depth: i32) -> Colour {
     }
 
     if let Some(rec) = world.hit(&ray, 0.001, f64::INFINITY) {
-        let mut attenuation = Colour::default();
+        let mut attenuation = WHITE;
         if let Some(scattered_ray) = rec.mat.scatter(&ray, &rec, &mut attenuation) {
             return attenuation * get_colour(scattered_ray, world, recursion_depth - 1);
         }
@@ -32,6 +33,7 @@ fn get_colour(ray: Ray, world: &HittableList, recursion_depth: i32) -> Colour {
         return BLACK;
     }
 
+    /*
     let t = hit_sphere(&SPHERE_CENTRE, 0.5, &ray);
     if t > 0. {
         let mut n = (ray.at(t) - SPHERE_CENTRE).unit_vector();
@@ -39,6 +41,7 @@ fn get_colour(ray: Ray, world: &HittableList, recursion_depth: i32) -> Colour {
         n *= 0.5;
         return n;
     }
+    */
 
     let unit_dir = ray.dir().unit_vector();
     let t = 0.5 * (unit_dir.y + 1.);
@@ -80,10 +83,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     world.add(Sphere::new(Point::new(0., -100.5, -1.), 100., mat_ground));
     world.add(Sphere::new(Point::new(0., 0., -1.), 0.5, mat_centre));
-    world.add(Sphere::new(Point::new(-1., 0., -1.), 0.5, mat_left));
+    world.add(Sphere::new(Point::new(-1., 0., -1.), 0.5, mat_left.clone()));
+    world.add(Sphere::new(Point::new(-1., 0., -1.), -0.45, mat_left));
     world.add(Sphere::new(Point::new(1., 0., -1.), 0.5, mat_right));
 
-    let cam = Camera::new();
+    let cam = Camera::new(
+        &Point::new(-2., 2., 1.),
+        &Point::new(0., 0., -1.),
+        &Point::new(0., 1., 0.),
+        90.,
+        ASPECT_RATIO,
+    );
 
     let file = File::create("img.ppm")?;
     let log = File::create("raytracer.log")?;
@@ -101,7 +111,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             (0..WIDTH)
                 .flat_map(|i| {
                     let px_colour: Vec3 = (0..SAMPLES_PER_PIXEL)
-                        .map(|s| {
+                        .map(|_| {
                             let mut rng = rand::thread_rng();
                             let u = (i as f64 + rng.gen_range(0.0..1.)) / ((WIDTH - 1) as f64);
                             let v = (j as f64 + rng.gen_range(0.0..1.)) / ((HEIGHT - 1) as f64);

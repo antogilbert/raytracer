@@ -140,9 +140,9 @@ impl Vec3 {
     }
 
     pub fn refract(&self, normal: &Vec3, refraction_ratio: f64) -> Self {
-        let cos_theta = (-self.dot(normal)).min(1.);
+        let cos_theta = ((-*self).dot(normal)).min(1.);
         let r_out_perp = refraction_ratio * (*self + cos_theta * *normal);
-        let r_out_par = (-(1. - r_out_perp.len_squared()).sqrt()) * *normal;
+        let r_out_par = -((1. - r_out_perp.len_squared()).abs().sqrt()) * *normal;
         r_out_par + r_out_perp
     }
 

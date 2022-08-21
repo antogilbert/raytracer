@@ -1,5 +1,5 @@
 use crate::{
-    constants::{DEPTH, HORIZONTAL, ORIGIN, VERTICAL},
+    constants::ORIGIN,
     ray::Ray,
     vec3::{Point, Vec3},
 };
@@ -12,12 +12,25 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new() -> Self {
+    pub fn new(from: &Point, to: &Point, vup: &Vec3, vfov: f64, aspect_ratio: f64) -> Self {
+        let theta = vfov.to_radians();
+        let h = (theta / 2.).tan();
+        let viewport_h = 2. * h;
+        let viewport_w = aspect_ratio * viewport_h;
+
+        let w = (*from - *to).unit_vector();
+        let u = vup.cross(&w).unit_vector();
+        let v = w.cross(&u);
+
+        let hor = viewport_w * u;
+        let ver = viewport_h * v;
+        let origin = *from;
+
         Self {
-            origin: ORIGIN,
-            low_left_corner: ORIGIN - HORIZONTAL / 2. - VERTICAL / 2. - DEPTH,
-            hor: HORIZONTAL,
-            ver: VERTICAL,
+            origin,
+            hor,
+            ver,
+            low_left_corner: origin - hor / 2. - ver / 2. - w,
         }
     }
 
