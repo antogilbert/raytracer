@@ -1,6 +1,5 @@
 use std::{
     error::Error,
-    f64::consts::PI,
     fs::File,
     io::{BufWriter, Write},
     sync::Arc,
@@ -32,16 +31,6 @@ fn get_colour(ray: Ray, world: &HittableList, recursion_depth: i32) -> Colour {
 
         return BLACK;
     }
-
-    /*
-    let t = hit_sphere(&SPHERE_CENTRE, 0.5, &ray);
-    if t > 0. {
-        let mut n = (ray.at(t) - SPHERE_CENTRE).unit_vector();
-        n += 1.;
-        n *= 0.5;
-        return n;
-    }
-    */
 
     let unit_dir = ray.dir().unit_vector();
     let t = 0.5 * (unit_dir.y + 1.);
@@ -87,13 +76,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     world.add(Sphere::new(Point::new(-1., 0., -1.), -0.45, mat_left));
     world.add(Sphere::new(Point::new(1., 0., -1.), 0.5, mat_right));
 
-    let cam = Camera::new(
-        &Point::new(-2., 2., 1.),
-        &Point::new(0., 0., -1.),
-        &Point::new(0., 1., 0.),
-        90.,
-        ASPECT_RATIO,
-    );
+    let from = Point::new(3., 3., 2.);
+    let to = Point::new(0., 0., -1.);
+    let vup = Point::new(0., 1., 0.);
+    let focus_dist = (from - to).len();
+    let aperture = 2.;
+    let cam = Camera::new(&from, &to, &vup, 20., ASPECT_RATIO, aperture, focus_dist);
 
     let file = File::create("img.ppm")?;
     let log = File::create("raytracer.log")?;
