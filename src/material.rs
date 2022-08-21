@@ -5,6 +5,8 @@ use crate::{
     vec3::{Colour, Vec3},
 };
 
+use rand::Rng;
+
 pub trait Material: Sync + Send {
     fn scatter(&self, ray: &Ray, rec: &HitRecord, attenuation: &mut Colour) -> Option<Ray>;
 }
@@ -70,6 +72,11 @@ impl Dielectric {
     pub fn new(ir: f64) -> Self {
         Self { refraction_idx: ir }
     }
+
+    fn reflectance(cos: f64, refraction_idx: f64) -> f64 {
+        let r0 = ((1. - refraction_idx) / (1. + refraction_idx)).powi(2);
+        r0 + (1. - r0) * (1. - cos).powi(5)
+    }
 }
 
 impl Material for Dielectric {
@@ -86,7 +93,9 @@ impl Material for Dielectric {
         let cos_theta = (-unit_dir).dot(&rec.n).min(1.);
         let sin_theta = (1. - cos_theta.powi(2)).sqrt();
 
-        let can_refract = refraction_ratio * sin_theta <= 1.;
+        let rand = rand::thread_rng().gen_range(0.0..1.);
+        let can_refract = (refraction_ratio * sin_theta <= 1.)
+            || (Dielectric::reflectance(cos_theta, refraction_ratio) < rand);
 
         let direction = if can_refract {
             unit_dir.refract(&rec.n, refraction_ratio)
