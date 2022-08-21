@@ -77,10 +77,6 @@ impl Vec3 {
         Vec3::random_in_unit_sphere().unit_vector()
     }
 
-    pub fn near_zero(&self) -> bool {
-        (self.x.abs() < MIN_DIM) && (self.y.abs() < MIN_DIM) && (self.z.abs() < MIN_DIM)
-    }
-
     pub fn as_colour_string(&self) -> String {
         let r = self.x / SAMPLES_PER_PIXEL as f64;
         let g = self.y / SAMPLES_PER_PIXEL as f64;
@@ -131,8 +127,16 @@ impl Vec3 {
         self.x.powi(2) + self.y.powi(2) + self.z.powi(2)
     }
 
+    pub fn near_zero(&self) -> bool {
+        (self.x.abs() < MIN_DIM) && (self.y.abs() < MIN_DIM) && (self.z.abs() < MIN_DIM)
+    }
+
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z }
+    }
+
+    pub fn reflect(&self, normal: &Vec3) -> Self {
+        return *self - 2. * self.dot(normal) * *normal;
     }
 
     pub fn unit_vector(&self) -> Self {

@@ -12,8 +12,14 @@ pub struct Lambertian {
     pub albedo: Colour,
 }
 
+impl Lambertian {
+    pub fn new(a: &Colour) -> Self {
+        Self { albedo: *a }
+    }
+}
+
 impl Material for Lambertian {
-    fn scatter(&self, ray: &Ray, rec: &HitRecord, attenuation: &mut Colour) -> Option<Ray> {
+    fn scatter(&self, _ray: &Ray, rec: &HitRecord, attenuation: &mut Colour) -> Option<Ray> {
         let mut scatter_dir = rec.n + Vec3::random_unit_vec();
         if scatter_dir.near_zero() {
             scatter_dir = rec.n;
@@ -21,5 +27,29 @@ impl Material for Lambertian {
 
         *attenuation = self.albedo;
         Some(Ray::new(&rec.p, &scatter_dir))
+    }
+}
+
+pub struct Metal {
+    pub albedo: Colour,
+}
+
+impl Metal {
+    pub fn new(a: &Colour) -> Self {
+        Self { albedo: *a }
+    }
+}
+
+impl Material for Metal {
+    fn scatter(&self, ray: &Ray, rec: &HitRecord, attenuation: &mut Colour) -> Option<Ray> {
+        let reflected = ray.dir().unit_vector().reflect(&rec.n);
+        let scattered = Ray::new(&rec.p, &reflected);
+        *attenuation = self.albedo;
+
+        if scattered.dir().dot(&rec.n) < 0. {
+            return None;
+        }
+
+        Some(scattered)
     }
 }
