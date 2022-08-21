@@ -6,7 +6,7 @@ use std::{
 
 use rand::Rng;
 
-use crate::constants::{MAX_CLAMP, MIN_CLAMP, SAMPLES_PER_PIXEL};
+use crate::constants::{MAX_CLAMP, MIN_CLAMP, MIN_DIM, SAMPLES_PER_PIXEL};
 
 pub fn clamp(x: f64) -> f64 {
     if x < MIN_CLAMP {
@@ -71,6 +71,14 @@ impl Vec3 {
         }
 
         in_sphere
+    }
+
+    pub fn random_unit_vec() -> Self {
+        Vec3::random_in_unit_sphere().unit_vector()
+    }
+
+    pub fn near_zero(&self) -> bool {
+        (self.x.abs() < MIN_DIM) && (self.y.abs() < MIN_DIM) && (self.z.abs() < MIN_DIM)
     }
 
     pub fn as_colour_string(&self) -> String {

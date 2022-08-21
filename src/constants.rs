@@ -11,6 +11,7 @@ pub const VIEWPORT_WIDTH: f64 = ASPECT_RATIO * VIEWPORT_HEIGHT;
 pub const FOCAL_LENGTH: f64 = 1.;
 pub const MIN_CLAMP: f64 = 0.;
 pub const MAX_CLAMP: f64 = 0.999;
+pub const MIN_DIM: f64 = 1e-8;
 
 pub const ORIGIN: Point = Point {
     x: 0.,

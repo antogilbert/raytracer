@@ -1,5 +1,8 @@
+use std::sync::Arc;
+
 use crate::{
     hittable::{HitRecord, Hittable},
+    material::Material,
     ray::Ray,
     vec3::Point,
 };
@@ -7,11 +10,16 @@ use crate::{
 pub struct Sphere {
     centre: Point,
     r: f64,
+    mat: Arc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(centre: Point, r: f64) -> Self {
-        Self { centre, r }
+    pub fn new(centre: Point, r: f64, mat: Arc<dyn Material>) -> Self {
+        Self {
+            centre,
+            r,
+            mat: mat.clone(),
+        }
     }
 }
 
@@ -38,7 +46,7 @@ impl Hittable for Sphere {
             }
         }
 
-        let mut record = HitRecord::new();
+        let mut record = HitRecord::new(&self.mat);
         record.t = root;
         record.p = ray.at(root);
         let outward_n = (record.p - self.centre) / self.r;
