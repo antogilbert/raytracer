@@ -1,9 +1,9 @@
 use crate::vec3::{Colour, Point, Vec3};
 
-pub const WIDTH: i32 = 400;
-pub const ASPECT_RATIO: f64 = 16. / 9.;
+pub const WIDTH: i32 = 1200;
+pub const ASPECT_RATIO: f64 = 3. / 2.;
 pub const HEIGHT: i32 = (WIDTH as f64 / ASPECT_RATIO) as i32;
-pub const SAMPLES_PER_PIXEL: i64 = 100;
+pub const SAMPLES_PER_PIXEL: i64 = 500;
 pub const MAX_RECURSION: i32 = 50;
 
 pub const VIEWPORT_HEIGHT: f64 = 2.;

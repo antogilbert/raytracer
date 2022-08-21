@@ -37,6 +37,53 @@ fn get_colour(ray: Ray, world: &HittableList, recursion_depth: i32) -> Colour {
     (1. - t) * WHITE + t * BLUE
 }
 
+fn random_f64() -> f64 {
+    rand::thread_rng().gen_range(0.0..1.)
+}
+
+fn generate_random_scene() -> HittableList {
+    let mut world = HittableList::new();
+
+    let ground = Arc::new(Lambertian::new(&Colour::new(0.5, 0.5, 0.5)));
+    world.add(Sphere::new(Point::new(0., -1000., 0.), 1000., ground));
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let mat = random_f64();
+            let centre = Point::new(
+                a as f64 + 0.9 * random_f64(),
+                0.2,
+                b as f64 + 0.9 * random_f64(),
+            );
+            if (centre - Point::new(4., 0.2, 0.)).len() > 0.9 {
+                if mat < 0.8 {
+                    let albedo = Colour::random() * Colour::random();
+                    let material = Arc::new(Lambertian::new(&albedo));
+                    world.add(Sphere::new(centre, 0.2, material));
+                } else if mat < 0.95 {
+                    let albedo = Colour::random_bounded(0.5, 1.);
+                    let fuzz = rand::thread_rng().gen_range(0.0..0.5);
+                    let material = Arc::new(Metal::new(&albedo, fuzz));
+                    world.add(Sphere::new(centre, 0.2, material));
+                } else {
+                    let material = Arc::new(Dielectric::new(1.5));
+                    world.add(Sphere::new(centre, 0.2, material));
+                }
+            }
+        }
+    }
+
+    let m1 = Arc::new(Dielectric::new(1.5));
+    let m2 = Arc::new(Metal::new(&Colour::new(0.7, 0.6, 0.5), 0.));
+    let m3 = Arc::new(Lambertian::new(&Colour::new(0.4, 0.2, 0.1)));
+
+    world.add(Sphere::new(Point::new(0., 1., 0.), 1., m1));
+    world.add(Sphere::new(Point::new(-4., 1., 0.), 1., m2));
+    world.add(Sphere::new(Point::new(4., 1., 0.), 1., m3));
+
+    world
+}
+
 fn hit_sphere(centre: &Point, radius: f64, ray: &Ray) -> f64 {
     // Equation for sphere intersection with the ray
     //
@@ -64,23 +111,13 @@ fn hit_sphere(centre: &Point, radius: f64, ray: &Ray) -> f64 {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let mut world = HittableList::new();
-    let mat_ground = Arc::new(Lambertian::new(&Colour::new(0.8, 0.8, 0.)));
-    let mat_centre = Arc::new(Lambertian::new(&Colour::new(0.1, 0.2, 0.5)));
-    let mat_left = Arc::new(Dielectric::new(1.5));
-    let mat_right = Arc::new(Metal::new(&Colour::new(0.8, 0.6, 0.2), 0.));
+    let world = generate_random_scene();
 
-    world.add(Sphere::new(Point::new(0., -100.5, -1.), 100., mat_ground));
-    world.add(Sphere::new(Point::new(0., 0., -1.), 0.5, mat_centre));
-    world.add(Sphere::new(Point::new(-1., 0., -1.), 0.5, mat_left.clone()));
-    world.add(Sphere::new(Point::new(-1., 0., -1.), -0.45, mat_left));
-    world.add(Sphere::new(Point::new(1., 0., -1.), 0.5, mat_right));
-
-    let from = Point::new(3., 3., 2.);
-    let to = Point::new(0., 0., -1.);
+    let from = Point::new(13., 2., 3.);
+    let to = Point::new(0., 0., 0.);
     let vup = Point::new(0., 1., 0.);
-    let focus_dist = (from - to).len();
-    let aperture = 2.;
+    let focus_dist = 10.;
+    let aperture = 0.1;
     let cam = Camera::new(&from, &to, &vup, 20., ASPECT_RATIO, aperture, focus_dist);
 
     let file = File::create("img.ppm")?;
