@@ -82,8 +82,18 @@ impl Material for Dielectric {
         };
 
         let unit_dir = ray.dir().unit_vector();
-        let refracted = unit_dir.refract(&rec.n, refraction_ratio);
 
-        Some(Ray::new(&rec.p, &refracted))
+        let cos_theta = (-unit_dir).dot(&rec.n).min(1.);
+        let sin_theta = (1. - cos_theta.powi(2)).sqrt();
+
+        let can_refract = refraction_ratio * sin_theta <= 1.;
+
+        let direction = if can_refract {
+            unit_dir.refract(&rec.n, refraction_ratio)
+        } else {
+            unit_dir.reflect(&rec.n)
+        };
+
+        Some(Ray::new(&rec.p, &direction))
     }
 }

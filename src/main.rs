@@ -74,9 +74,9 @@ fn hit_sphere(centre: &Point, radius: f64, ray: &Ray) -> f64 {
 fn main() -> Result<(), Box<dyn Error>> {
     let mut world = HittableList::new();
     let mat_ground = Arc::new(Lambertian::new(&Colour::new(0.8, 0.8, 0.)));
-    let mat_centre = Arc::new(Lambertian::new(&Colour::new(0.7, 0.3, 0.3)));
+    let mat_centre = Arc::new(Lambertian::new(&Colour::new(0.1, 0.2, 0.5)));
     let mat_left = Arc::new(Dielectric::new(1.5));
-    let mat_right = Arc::new(Dielectric::new(1.5));
+    let mat_right = Arc::new(Metal::new(&Colour::new(0.8, 0.6, 0.2), 0.));
 
     world.add(Sphere::new(Point::new(0., -100.5, -1.), 100., mat_ground));
     world.add(Sphere::new(Point::new(0., 0., -1.), 0.5, mat_centre));
